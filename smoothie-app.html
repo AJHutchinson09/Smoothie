@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Morning Smoothies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0D0D0B;
+  --surface: #161614;
+  --card: #1E1E1A;
+  --card2: #252521;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #F0EDE6;
+  --text-mid: #9E9A93;
+  --text-dim: #5A5752;
+  --accent: #C8A96E;
+  --accent-dim: rgba(200,169,110,0.15);
+  --accent-border: rgba(200,169,110,0.3);
+  --green: #7BAF6E;
+  --green-dim: rgba(123,175,110,0.12);
+  --green-border: rgba(123,175,110,0.25);
+  --blue: #6E9FC8;
+  --blue-dim: rgba(110,159,200,0.12);
+  --coral: #C87E6E;
+  --coral-dim: rgba(200,126,110,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; font-weight: 400; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+/* ── FRAME MODE ── */
+#frame-mode { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.8s ease; }
+#frame-mode.hidden { opacity: 0; pointer-events: none; }
+.frame-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 1.5s ease; }
+.frame-clock { position: absolute; bottom: 48px; right: 56px; text-align: right; pointer-events: none; }
+.frame-time { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 400; color: rgba(255,255,255,0.9); line-height: 1; text-shadow: 0 2px 20px rgba(0,0,0,0.5); letter-spacing: -0.02em; }
+.frame-date { font-size: clamp(0.8rem, 2vw, 1rem); font-weight: 300; color: rgba(255,255,255,0.55); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 6px; text-shadow: 0 1px 8px rgba(0,0,0,0.5); }
+.frame-tap-hint { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.25); animation: pulse-hint 3s ease-in-out infinite; }
+@keyframes pulse-hint { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+.frame-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, transparent 70%, rgba(0,0,0,0.2) 100%); }
+
+/* ── APP SHELL ── */
+#app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── TOP BAR ── */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.topbar-left { display: flex; flex-direction: column; }
+.topbar-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+.topbar-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 400; color: var(--text); line-height: 1.1; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-clock { font-size: 13px; color: var(--text-mid); letter-spacing: 0.05em; }
+.btn-frame { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 16px; border-radius: 20px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+.btn-frame:active { transform: scale(0.96); }
+.btn-frame:hover { background: rgba(200,169,110,0.25); }
+.btn-prep { background: var(--green-dim); border: 1px solid var(--green-border); color: var(--green); font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 16px; border-radius: 20px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+.btn-prep:active { transform: scale(0.96); }
+.btn-prep:hover { background: rgba(123,175,110,0.22); }
+
+/* ── SCROLL AREA ── */
+.scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; padding: 20px 24px 32px; }
+.scroll-area::-webkit-scrollbar { width: 4px; }
+.scroll-area::-webkit-scrollbar-track { background: transparent; }
+.scroll-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── TODAY BANNER ── */
+.today-banner { background: var(--accent-dim); border: 1px solid var(--accent-border); border-radius: var(--radius); padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.2s; }
+.today-banner:hover { background: rgba(200,169,110,0.22); }
+.today-banner:active { transform: scale(0.99); }
+.today-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
+.today-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text); }
+.today-arrow { font-size: 18px; color: var(--accent); opacity: 0.7; }
+
+/* ── RECIPE GRID ── */
+.recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+
+/* ── RECIPE CARD ── */
+.recipe-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; position: relative; }
+.recipe-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.recipe-card:active { transform: scale(0.98); }
+.recipe-card.is-today { border-color: var(--accent-border); }
+.today-dot { position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.card-img { width: 100%; height: 130px; object-fit: cover; display: block; background: var(--card2); }
+.card-img-placeholder { width: 100%; height: 130px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; background: var(--card2); }
+.card-body { padding: 12px 16px 14px; }
+.card-num { font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+.card-name { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 400; line-height: 1.2; margin-bottom: 8px; color: var(--text); }
+.card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+.stock-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--green); display: flex; align-items: center; gap: 5px; }
+.stock-badge.empty { color: var(--text-dim); font-weight: 400; }
+.stock-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.stock-badge.empty .stock-dot { background: var(--text-dim); }
+.btn-use { background: var(--green-dim); border: 1px solid var(--green-border); color: var(--green); font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: background 0.15s, transform 0.1s; white-space: nowrap; }
+.btn-use:hover { background: rgba(123,175,110,0.25); }
+.btn-use:active { transform: scale(0.94); }
+.btn-use:disabled { opacity: 0.25; cursor: default; }
+
+/* ── TAGS ── */
+.tag { font-size: 10px; font-weight: 500; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 20px; line-height: 1.4; }
+.tag-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(123,175,110,0.2); }
+.tag-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(110,159,200,0.2); }
+.tag-amber { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+.tag-gray { background: rgba(255,255,255,0.05); color: var(--text-mid); border: 1px solid var(--border); }
+.tag-coral { background: var(--coral-dim); color: var(--coral); border: 1px solid rgba(200,126,110,0.2); }
+
+/* ── SLIDE-IN VIEWS (shared) ── */
+.slide-view { position: fixed; inset: 0; background: var(--bg); z-index: 50; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.32,0,0.2,1); overflow: hidden; }
+.slide-view.open { transform: translateX(0); }
+.view-topbar { display: flex; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 16px; }
+.view-scroll { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+.view-scroll::-webkit-scrollbar { width: 4px; }
+.view-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.btn-back { background: var(--card); border: 1px solid var(--border2); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background 0.2s, transform 0.1s; flex-shrink: 0; }
+.btn-back:active { transform: scale(0.96); }
+.btn-back:hover { background: var(--card2); }
+.view-topbar-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── DETAIL VIEW ── */
+.detail-hero { width: 100%; height: min(35vh, 280px); object-fit: cover; display: block; background: var(--card); }
+.detail-hero-placeholder { width: 100%; height: min(35vh, 280px); background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 5rem; }
+.detail-content { padding: 24px 28px 48px; max-width: 700px; margin: 0 auto; }
+.detail-eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 6px; }
+.detail-name { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 400; line-height: 1.15; margin-bottom: 16px; }
+.detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.tag { font-size: 12px; font-weight: 500; letter-spacing: 0.04em; padding: 5px 12px; border-radius: 20px; line-height: 1.4; }
+.caffeine-note { background: var(--accent-dim); border: 1px solid var(--accent-border); border-radius: var(--radius-sm); padding: 14px 18px; font-size: 15px; color: var(--accent); margin-bottom: 20px; }
+.detail-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+@media (max-width: 480px) { .detail-cols { grid-template-columns: 1fr; } }
+.ing-section { background: var(--card); border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; }
+.ing-header { padding: 14px 18px; border-bottom: 1px solid var(--border2); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.ing-header-icon { font-size: 16px; }
+.ing-row { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 18px; font-size: 16px; border-bottom: 1px solid var(--border); gap: 12px; }
+.ing-row:last-child { border-bottom: none; }
+.ing-row-name { color: var(--text); font-weight: 400; }
+.ing-row-amount { font-size: 15px; color: var(--text); white-space: nowrap; flex-shrink: 0; font-weight: 600; }
+.detail-description { font-size: 17px; color: var(--text); line-height: 1.75; margin-bottom: 28px; font-weight: 300; }
+.detail-nav { display: flex; gap: 10px; margin-top: 24px; }
+.btn-nav { flex: 1; background: var(--card); border: 1px solid var(--border2); color: var(--text-mid); font-family: 'Outfit', sans-serif; font-size: 13px; padding: 12px 16px; border-radius: var(--radius); cursor: pointer; text-align: center; transition: background 0.2s, color 0.2s; }
+.btn-nav:hover { background: var(--card2); color: var(--text); }
+.btn-nav:active { transform: scale(0.98); }
+.btn-nav:disabled { opacity: 0.3; cursor: default; }
+.btn-nav .nav-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); display: block; margin-bottom: 2px; }
+.btn-nav .nav-name { display: block; font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--text); }
+
+/* ── PREP PLANNER ── */
+.prep-content { padding: 20px 24px 48px; max-width: 720px; margin: 0 auto; }
+.prep-section-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; font-weight: 500; }
+
+/* Step indicators */
+.prep-steps { display: flex; align-items: center; gap: 0; margin-bottom: 24px; }
+.prep-step { display: flex; align-items: center; gap: 8px; flex: 1; }
+.prep-step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--card2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--text-dim); flex-shrink: 0; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.prep-step-num.active { background: var(--green-dim); border-color: var(--green-border); color: var(--green); }
+.prep-step-num.done { background: var(--green); border-color: var(--green); color: #0D0D0B; }
+.prep-step-label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.05em; }
+.prep-step-label.active { color: var(--green); }
+.prep-step-connector { flex: 1; height: 1px; background: var(--border); margin: 0 8px; max-width: 40px; }
+
+/* Leftover banner */
+.leftover-banner { background: var(--green-dim); border: 1px solid var(--green-border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; }
+.leftover-banner-title { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); font-weight: 600; margin-bottom: 8px; }
+.leftover-rows { display: flex; flex-direction: column; gap: 5px; }
+.leftover-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-mid); }
+.leftover-row span:last-child { color: var(--green); font-weight: 600; }
+.leftover-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--green-border); font-size: 13px; color: var(--text); font-weight: 500; display: flex; justify-content: space-between; }
+
+/* Selector grid */
+.selector-intro { font-size: 14px; color: var(--text-mid); margin-bottom: 16px; line-height: 1.6; }
+.selector-counter { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.selector-count { font-size: 13px; color: var(--text-mid); }
+.selector-count span { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--text); }
+.btn-generate { background: var(--green); color: #0D0D0B; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; padding: 10px 24px; border-radius: 20px; border: none; cursor: pointer; transition: opacity 0.2s, transform 0.1s; letter-spacing: 0.04em; }
+.btn-generate:disabled { opacity: 0.3; cursor: default; }
+.btn-generate:not(:disabled):hover { opacity: 0.85; }
+.btn-generate:not(:disabled):active { transform: scale(0.97); }
+
+.selector-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.sel-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; transition: border-color 0.15s, background 0.15s; display: flex; align-items: center; gap: 10px; position: relative; user-select: none; }
+.sel-card.selected { background: var(--green-dim); border-color: var(--green-border); }
+.sel-emoji { font-size: 1.3rem; flex-shrink: 0; }
+.sel-info { flex: 1; min-width: 0; }
+.sel-name { font-size: 13px; font-weight: 500; color: var(--text-mid); line-height: 1.3; transition: color 0.15s; }
+.sel-card.selected .sel-name { color: var(--text); }
+/* stepper controls */
+.sel-stepper { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+.sel-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border2); background: var(--card2); color: var(--text); font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s, transform 0.1s; flex-shrink: 0; font-family: 'Outfit', sans-serif; font-weight: 300; }
+.sel-btn:active { transform: scale(0.88); }
+.sel-btn.minus { color: var(--coral); border-color: rgba(200,126,110,0.3); }
+.sel-btn.minus:hover { background: rgba(200,126,110,0.12); }
+.sel-btn.plus { color: var(--green); border-color: var(--green-border); }
+.sel-btn.plus:hover { background: var(--green-dim); }
+.sel-btn:disabled { opacity: 0.2; cursor: default; }
+.sel-btn:disabled:active { transform: none; }
+.sel-count-display { width: 28px; text-align: center; font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--text); line-height: 1; }
+
+/* Results */
+.prep-results { display: none; }
+.prep-results.visible { display: block; }
+
+.result-section { margin-bottom: 24px; }
+.result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.result-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text); }
+.result-subtitle { font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+
+/* Week schedule strip */
+.week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 24px; }
+.day-chip { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 6px; text-align: center; }
+.day-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+.day-emoji { font-size: 1.2rem; display: block; margin-bottom: 3px; }
+.day-name { font-size: 9px; color: var(--text-mid); line-height: 1.3; }
+
+/* Bag cards */
+.bags-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.bag-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.bag-card-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.bag-day-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+.bag-recipe-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.2; }
+.bag-emoji { font-size: 1.3rem; }
+.bag-items { padding: 8px 0; }
+.bag-item { display: flex; justify-content: space-between; padding: 5px 14px; font-size: 12px; border-bottom: 1px solid var(--border); gap: 8px; }
+.bag-item:last-child { border-bottom: none; }
+.bag-item-name { color: var(--text-mid); }
+.bag-item-amt { color: var(--text-dim); font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.bag-item-name.is-new { color: var(--green); }
+.bag-item-amt.is-new { color: var(--green); }
+
+/* Shopping list */
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 500px) { .shop-grid { grid-template-columns: 1fr; } }
+.shop-section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.shop-section-header { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; }
+.shop-item { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 16px; font-size: 13px; border-bottom: 1px solid var(--border); gap: 8px; cursor: pointer; transition: background 0.15s; }
+.shop-item:last-child { border-bottom: none; }
+.shop-item:hover { background: var(--card2); }
+.shop-item.checked { opacity: 0.4; }
+.shop-item.checked .shop-name { text-decoration: line-through; }
+.shop-name { color: var(--text); flex: 1; display: flex; align-items: center; gap: 8px; }
+.shop-check { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border2); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 9px; background: transparent; transition: background 0.15s, border-color 0.15s; }
+.shop-item.checked .shop-check { background: var(--green); border-color: var(--green); color: #0D0D0B; }
+.shop-amt { color: var(--text-dim); font-size: 12px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+
+
+
+.prep-notes { background: var(--accent-dim); border: 1px solid var(--accent-border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; }
+.prep-notes-title { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; font-weight: 500; }
+.prep-note-item { font-size: 13px; color: var(--text-mid); margin-bottom: 5px; padding-left: 14px; position: relative; line-height: 1.5; }
+.prep-note-item::before { content: '·'; position: absolute; left: 4px; color: var(--accent); }
+.prep-note-item:last-child { margin-bottom: 0; }
+
+.btn-reset { background: transparent; border: 1px solid var(--border2); color: var(--text-dim); font-family: 'Outfit', sans-serif; font-size: 12px; padding: 8px 18px; border-radius: 20px; cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+.btn-reset:hover { background: var(--card2); color: var(--text-mid); }
+
+/* ── NIGHT SLEEP MODE ── */
+#night-mode { position: fixed; inset: 0; background: #000; z-index: 200; display: none; cursor: pointer; }
+#night-mode.active { display: flex; align-items: flex-end; justify-content: center; padding-bottom: 32px; }
+#night-tap-hint { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.12); animation: pulse-hint 4s ease-in-out infinite; }
+
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+</style>
+</head>
+<body>
+
+<!-- PHOTO FRAME MODE -->
+<div id="frame-mode" onclick="exitFrame()">
+  <img class="frame-img" id="frame-img" src="" alt="">
+  <div class="frame-overlay"></div>
+  <div class="frame-clock">
+    <div class="frame-time" id="frame-time">00:00</div>
+    <div class="frame-date" id="frame-date"></div>
+  </div>
+  <div class="frame-tap-hint">Tap to open recipes</div>
+</div>
+
+<!-- NIGHT SLEEP OVERLAY -->
+<div id="night-mode">
+  <div id="night-tap-hint">Tap to wake</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-eyebrow">Morning ritual</div>
+      <div class="topbar-title">Smoothies</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-clock" id="app-clock"></div>
+      <button class="btn-prep" onclick="openPrep()">⊞ Prep week</button>
+      <button class="btn-frame" onclick="enterFrame()">⬛ Frame</button>
+    </div>
+  </div>
+  <div class="scroll-area">
+    <div class="today-banner" id="today-banner" onclick="openToday()">
+      <div>
+        <div class="today-label">Today's smoothie</div>
+        <div class="today-name" id="today-name">—</div>
+      </div>
+      <div class="today-arrow">→</div>
+    </div>
+    <div class="recipe-grid" id="recipe-grid"></div>
+  </div>
+</div>
+
+<!-- DETAIL VIEW -->
+<div id="detail-view" class="slide-view">
+  <div class="view-topbar">
+    <button class="btn-back" onclick="closeDetail()">← Back</button>
+    <div class="view-topbar-title" id="detail-topbar-title"></div>
+  </div>
+  <div class="view-scroll" id="detail-scroll">
+    <div id="detail-hero-wrap"></div>
+    <div class="detail-content" id="detail-content"></div>
+  </div>
+</div>
+
+<!-- PREP PLANNER VIEW -->
+<div id="prep-view" class="slide-view">
+  <div class="view-topbar">
+    <button class="btn-back" onclick="closePrep()">← Back</button>
+    <div class="view-topbar-title">Weekly prep planner</div>
+  </div>
+  <div class="view-scroll">
+    <div class="prep-content">
+
+      <!-- Step indicators -->
+      <div class="prep-steps">
+        <div class="prep-step">
+          <div class="prep-step-num active" id="step-num-1">1</div>
+          <div class="prep-step-label active" id="step-lbl-1">Choose 7</div>
+        </div>
+        <div class="prep-step-connector"></div>
+        <div class="prep-step">
+          <div class="prep-step-num" id="step-num-2">2</div>
+          <div class="prep-step-label" id="step-lbl-2">Your plan</div>
+        </div>
+      </div>
+
+      <!-- STEP 1: selector -->
+      <div id="prep-step1">
+        <div id="leftover-banner" style="display:none"></div>
+        <p class="selector-intro">Use the + and − buttons to set how many of each smoothie you want this week. Add as many as you need — prep however many bags suits the week.</p>
+        <div class="selector-counter">
+          <div class="selector-count">Selected: <span id="sel-count">0</span> / 7</div>
+          <button class="btn-generate" id="btn-generate" disabled onclick="generatePlan()">Generate plan →</button>
+        </div>
+        <div class="selector-grid" id="selector-grid"></div>
+      </div>
+
+      <!-- STEP 2: results -->
+      <div id="prep-step2" class="prep-results">
+
+        <div class="result-section">
+          <div class="result-header">
+            <div>
+              <div class="result-title">Week at a glance</div>
+              <div class="result-subtitle" id="week-strip-subtitle">Your smoothies for the week</div>
+            </div>
+          </div>
+          <div class="week-strip" id="week-strip"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-section">
+          <div class="result-header">
+            <div>
+              <div class="result-title">Prep notes</div>
+            </div>
+          </div>
+          <div class="prep-notes" id="prep-notes-box">
+            <div class="prep-notes-title">Before you start</div>
+            <div id="prep-notes-list"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-section">
+          <div class="result-header">
+            <div>
+              <div class="result-title">Bag by bag</div>
+              <div class="result-subtitle">What goes into each freezer bag — prep all 7 in one session</div>
+            </div>
+          </div>
+          <div class="bags-grid" id="bags-grid"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-section">
+          <div class="result-header">
+            <div>
+              <div class="result-title">Shopping list</div>
+              <div class="result-subtitle">Bag ingredients only · Tap items to tick off</div>
+            </div>
+          </div>
+          <div class="shop-grid" id="shop-grid"></div>
+        </div>
+
+        <div style="margin-top: 28px; text-align: center;">
+          <button class="btn-reset" onclick="resetPrep()">← Change selection</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const RECIPES = [
+  {
+    id: 1, name: "Green Power", emoji: "🥬",
+    description: "A bright, zingy blend of tropical fruit and leafy greens with a creamy yogurt base. Pineapple and mango give it a natural sweetness, while a little ginger keeps things fresh. The go-to morning smoothie.",
+    tags: [{ label: "Folate", type: "green" }, { label: "High protein", type: "green" }, { label: "Iron", type: "blue" }, { label: "Good for nausea", type: "blue" }],
+    bag: [{ name: "Frozen spinach/kale", amount: "60g", grams: 60 }, { name: "Frozen banana", amount: "100g", grams: 100 }, { name: "Frozen pineapple", amount: "100g", grams: 100 }, { name: "Frozen mango", amount: "100g", grams: 100 }, { name: "Ground flaxseed", amount: "10g", grams: 10 }],
+    fresh: [{ name: "Greek yogurt", amount: "125g" }, { name: "Almond milk", amount: "150ml" }, { name: "Lemon juice", amount: "15ml" }, { name: "Fresh ginger (opt)", amount: "5g" }, { name: "Fresh mint (opt)", amount: "5g" }]
+  },
+  {
+    id: 2, name: "Tropical Greens", emoji: "🥭",
+    description: "Bold and tropical with a double hit of greens blended smooth by ripe mango and banana. Almond butter adds a gentle richness that rounds out the flavour beautifully.",
+    tags: [{ label: "Folate", type: "green" }, { label: "Healthy fats", type: "blue" }, { label: "Iron", type: "blue" }],
+    bag: [{ name: "Frozen spinach", amount: "30g", grams: 30 }, { name: "Frozen kale", amount: "30g", grams: 30 }, { name: "Frozen mango", amount: "165g", grams: 165 }, { name: "Frozen banana", amount: "100g", grams: 100 }, { name: "Ground flaxseed", amount: "10g", grams: 10 }],
+    fresh: [{ name: "Almond milk", amount: "180ml" }, { name: "Almond butter", amount: "16g" }, { name: "Greek yogurt", amount: "125g" }, { name: "Fresh ginger (opt)", amount: "5g" }]
+  },
+  {
+    id: 3, name: "Baby Kale & Apple", emoji: "🍏",
+    description: "Light, clean and easy to drink. Crisp apple and cashew butter make for a delicate, almost dessert-like smoothie that's gentle on the stomach. Perfect for quieter mornings.",
+    tags: [{ label: "Light & gentle", type: "gray" }, { label: "Folate", type: "green" }, { label: "Good for nausea", type: "blue" }],
+    bag: [{ name: "Frozen kale", amount: "45g", grams: 45 }, { name: "Apple (peeled, frozen)", amount: "180g", grams: 180 }, { name: "Ice", amount: "80g", grams: 80 }],
+    fresh: [{ name: "Almond milk", amount: "240ml" }, { name: "Cashew butter", amount: "32g" }, { name: "Honey", amount: "14g" }]
+  },
+  {
+    id: 4, name: "Double Green & Mango", emoji: "🌿",
+    description: "Kale and spinach together, kept totally smooth by sweet mango and banana. Vanilla almond milk gives it a warmth that makes the greens completely disappear. Thick and satisfying.",
+    tags: [{ label: "High folate", type: "green" }, { label: "Iron", type: "blue" }, { label: "Natural energy", type: "blue" }],
+    bag: [{ name: "Frozen kale", amount: "30g", grams: 30 }, { name: "Frozen spinach", amount: "30g", grams: 30 }, { name: "Frozen mango", amount: "165g", grams: 165 }, { name: "Frozen banana", amount: "60g", grams: 60 }, { name: "Ground flaxseed", amount: "10g", grams: 10 }],
+    fresh: [{ name: "Vanilla almond milk", amount: "240ml" }, { name: "Almond butter", amount: "32g" }]
+  },
+  {
+    id: 5, name: "Spinach, Peach & Chia", emoji: "🍑",
+    description: "Soft and summery with a gentle tang from lemon and yogurt. Peach and banana keep it naturally sweet, and chia seeds give it a satisfying body. Particularly good on difficult mornings.",
+    tags: [{ label: "Good for nausea", type: "blue" }, { label: "Omega-3", type: "blue" }, { label: "Folate", type: "green" }],
+    bag: [{ name: "Frozen spinach", amount: "30g", grams: 30 }, { name: "Frozen peach", amount: "140g", grams: 140 }, { name: "Frozen banana", amount: "100g", grams: 100 }, { name: "Chia seeds", amount: "12g", grams: 12 }],
+    fresh: [{ name: "Almond milk", amount: "200ml" }, { name: "Greek yogurt", amount: "100g" }, { name: "Lemon juice", amount: "15ml" }]
+  },
+  {
+    id: 6, name: "Spinach Blueberry Oat", emoji: "🫐",
+    description: "Deep purple, earthy and filling. Blueberries bring a rich antioxidant sweetness and the oats blend into a creamy, porridge-like smoothie with slow-release energy that keeps you going.",
+    tags: [{ label: "High fibre", type: "green" }, { label: "Antioxidants", type: "blue" }, { label: "Slow release energy", type: "blue" }],
+    bag: [{ name: "Frozen spinach", amount: "30g", grams: 30 }, { name: "Frozen blueberries", amount: "148g", grams: 148 }, { name: "Rolled oats", amount: "20g", grams: 20 }, { name: "Ground flaxseed", amount: "10g", grams: 10 }],
+    fresh: [{ name: "Oat milk", amount: "300ml" }, { name: "Maple syrup (opt)", amount: "10ml" }]
+  },
+  {
+    id: 7, name: "Strawberry Kale", emoji: "🍓",
+    description: "Classic strawberry flavour with a peanut butter and vanilla finish that tastes more like a treat than a health drink. Soy milk gives it a proper creamy protein boost.",
+    tags: [{ label: "High protein", type: "green" }, { label: "Folate", type: "green" }, { label: "Simple to make", type: "gray" }],
+    bag: [{ name: "Frozen kale", amount: "30g", grams: 30 }, { name: "Frozen strawberries", amount: "152g", grams: 152 }, { name: "Ice", amount: "75g", grams: 75 }],
+    fresh: [{ name: "Soy milk", amount: "240ml" }, { name: "Peanut butter", amount: "16g" }, { name: "Honey", amount: "21g" }, { name: "Vanilla extract", amount: "5ml" }]
+  },
+  {
+    id: 8, name: "Mango Chocolate", emoji: "🍫",
+    description: "The Friday smoothie. Rich dark chocolate with tropical mango and a silky almond butter base — it genuinely tastes indulgent. Add the chocolate melted, not frozen, for the smoothest result.",
+    tags: [{ label: "Treat", type: "amber" }, { label: "Iron", type: "blue" }, { label: "Magnesium", type: "blue" }],
+    caffeineNote: "Dark chocolate adds around 10–20mg caffeine — well within the daily 200mg limit. Worth counting alongside coffee or tea.",
+    bag: [{ name: "Frozen mango", amount: "165g", grams: 165 }, { name: "Frozen banana", amount: "60g", grams: 60 }, { name: "Chia seeds", amount: "12g", grams: 12 }, { name: "Ice", amount: "120g", grams: 120 }, { name: "Ground flaxseed", amount: "10g", grams: 10 }],
+    fresh: [{ name: "Almond milk", amount: "240ml" }, { name: "Almond butter", amount: "16g" }, { name: "Dark chocolate (melted)", amount: "15g" }]
+  },
+  {
+    id: 9, name: "Berry Hemp Seed Boost", emoji: "🫐",
+    description: "Mixed berries and banana with grated carrot blended in — you won't taste it, but it adds a lovely natural sweetness. Hemp seeds make this one of the most complete smoothies in the lineup.",
+    tags: [{ label: "Complete protein", type: "green" }, { label: "Omega-3", type: "blue" }, { label: "Beta-carotene", type: "green" }, { label: "Iron", type: "blue" }],
+    bag: [{ name: "Frozen mixed berries", amount: "150g", grams: 150 }, { name: "Frozen banana", amount: "100g", grams: 100 }, { name: "Hemp seeds", amount: "30g", grams: 30 }, { name: "Carrot (grated, frozen)", amount: "80g", grams: 80 }],
+    fresh: [{ name: "Oat milk", amount: "250ml" }, { name: "Greek yogurt", amount: "100g" }, { name: "Honey (opt)", amount: "7g" }]
+  },
+  {
+    id: 10, name: "Strawberry Tofu", emoji: "🍓",
+    description: "Creamy, clean and surprisingly light. Soft tofu blends into a silky base that you'd never identify — the result is a smooth strawberry and lemon smoothie with a proper protein hit.",
+    tags: [{ label: "High protein", type: "green" }, { label: "Calcium", type: "blue" }, { label: "Iron", type: "blue" }],
+    bag: [{ name: "Frozen strawberries", amount: "200g", grams: 200 }, { name: "Frozen banana", amount: "100g", grams: 100 }],
+    fresh: [{ name: "Soft tofu", amount: "200g" }, { name: "Almond milk", amount: "180ml" }, { name: "Lemon juice", amount: "30ml" }, { name: "Honey", amount: "21g" }, { name: "Salt", amount: "1g" }]
+  }
+];
+
+const STOCK_PHOTOS = [
+  "https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=600&q=80",
+  "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=600&q=80",
+  "https://images.unsplash.com/photo-1589365278144-c9e705f843ba?w=600&q=80",
+  "https://images.unsplash.com/photo-1638893255648-dd24c6e9daf4?w=600&q=80",
+  "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=600&q=80",
+  "https://images.unsplash.com/photo-1502741224143-90386d7f8c82?w=600&q=80",
+  "https://images.unsplash.com/photo-1570696516188-ade861b84a49?w=600&q=80",
+  "https://images.unsplash.com/photo-1541795795328-f073b763494e?w=600&q=80",
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",
+  "https://images.unsplash.com/photo-1594488506255-7c41e61e4d08?w=600&q=80"
+];
+
+// ── FRAME PHOTOS ──
+// Looks for images in a 'photos' folder next to this HTML file.
+// Filenames must be listed in FRAME_PHOTO_FILES below.
+// To add your own photos: put them in a /photos/ folder alongside this file,
+// then add the filenames to this list.
+const FRAME_PHOTO_FILES = [
+  // Add your photo filenames here, e.g.:
+  // 'photos/IMG_001.jpg',
+  // 'photos/holiday.jpg',
+];
+
+// Fallback scenic photos used until you add your own
+const FALLBACK_PHOTOS = [
+  "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=1200&q=80",
+  "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1200&q=80",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80",
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80"
+];
+
+const FRAME_PHOTOS = FRAME_PHOTO_FILES.length > 0 ? FRAME_PHOTO_FILES : FALLBACK_PHOTOS;
+
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+// ── STOCK STORAGE ──
+function loadStock() {
+  try { return JSON.parse(localStorage.getItem('smoothie-stock') || 'null') || new Array(10).fill(0); }
+  catch(e) { return new Array(10).fill(0); }
+}
+function saveStock(s) {
+  try { localStorage.setItem('smoothie-stock', JSON.stringify(s)); } catch(e) {}
+}
+let stock = loadStock();
+
+// ── State ──
+let currentDetail = null;
+let frameInterval = null;
+let framePhotoIndex = 0;
+let idleTimer = null;
+const IDLE_MS = 90000;
+let selCounts = new Array(10).fill(0);
+
+function getTodayIndex() {
+  return new Date().getDay() % RECIPES.length;
+}
+
+// ── MAIN GRID ──
+function buildGrid() {
+  const grid = document.getElementById('recipe-grid');
+  grid.innerHTML = '';
+  const todayIdx = getTodayIndex();
+  RECIPES.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'recipe-card' + (i === todayIdx ? ' is-today' : '');
+    card.id = `card-${i}`;
+    const qty = stock[i] || 0;
+    card.innerHTML = `
+      ${i === todayIdx ? '<div class="today-dot"></div>' : ''}
+      <img class="card-img" src="${STOCK_PHOTOS[i]}" alt="${r.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="card-img-placeholder" style="display:none">${r.emoji}</div>
+      <div class="card-body">
+        <div class="card-num">No. ${r.id}</div>
+        <div class="card-name">${r.name}</div>
+        <div class="card-tags">${r.tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('')}</div>
+        <div class="card-footer">
+          <div class="${qty > 0 ? 'stock-badge' : 'stock-badge empty'}" id="stock-badge-${i}"><div class="stock-dot"></div><span id="stock-text-${i}">${qty > 0 ? qty + ' ready' : 'None prepped'}</span></div>
+          <button class="btn-use" id="btn-use-${i}" onclick="useOne(event,${i})" ${qty === 0 ? 'disabled' : ''}>Used one ✓</button>
+        </div>
+      </div>`;
+    card.addEventListener('click', (e) => { if (!e.target.closest('.btn-use')) openDetail(i); });
+    grid.appendChild(card);
+  });
+  document.getElementById('today-name').textContent = RECIPES[todayIdx].name;
+}
+
+function useOne(e, i) {
+  e.stopPropagation();
+  if (stock[i] <= 0) return;
+  stock[i]--;
+  saveStock(stock);
+  updateCardStock(i);
+  resetIdleTimer();
+}
+
+function updateCardStock(i) {
+  const qty = stock[i];
+  const badge = document.getElementById(`stock-badge-${i}`);
+  const text = document.getElementById(`stock-text-${i}`);
+  const btn = document.getElementById(`btn-use-${i}`);
+  if (!badge || !text || !btn) return;
+  badge.className = qty > 0 ? 'stock-badge' : 'stock-badge empty';
+  text.textContent = qty > 0 ? `${qty} ready` : 'None prepped';
+  btn.disabled = qty === 0;
+}
+
+// ── DETAIL VIEW ──
+function openDetail(idx) {
+  resetIdleTimer();
+  currentDetail = idx;
+  const r = RECIPES[idx];
+  document.getElementById('detail-topbar-title').textContent = r.name;
+
+  document.getElementById('detail-hero-wrap').innerHTML = `
+    <img class="detail-hero" src="${STOCK_PHOTOS[idx]}" alt="${r.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="detail-hero-placeholder" style="display:none">${r.emoji}</div>`;
+
+  const swapHtml = '';
+  const bonusHtml = '';
+  const flaxHtml = '';
+  const bagRows = r.bag.map(ing => `<div class="ing-row"><span class="ing-row-name">${ing.name}</span><span class="ing-row-amount">${ing.amount}</span></div>`).join('');
+  const freshRows = r.fresh.map(ing => `<div class="ing-row"><span class="ing-row-name">${ing.name}</span><span class="ing-row-amount">${ing.amount}</span></div>`).join('');
+  const caffeineHtml = r.caffeineNote ? `<div class="caffeine-note">☕ ${r.caffeineNote}</div>` : '';
+  const prevIdx = idx > 0 ? idx - 1 : null;
+  const nextIdx = idx < RECIPES.length - 1 ? idx + 1 : null;
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-eyebrow">Smoothie No. ${r.id}</div>
+    <div class="detail-name">${r.name}</div>
+    <div class="detail-tags">${r.tags.map(t => `<span class="tag tag-${t.type}">${t.label}</span>`).join('')}</div>
+    <div class="detail-description">${r.description}</div>
+    <div class="detail-cols">
+      <div class="ing-section"><div class="ing-header"><span class="ing-header-icon">❄</span> Into the bag</div>${bagRows}</div>
+      <div class="ing-section"><div class="ing-header"><span class="ing-header-icon">🥛</span> Add fresh (morning of)</div>${freshRows}</div>
+    </div>
+    ${caffeineHtml}
+    <div class="detail-nav">
+      <button class="btn-nav" onclick="openDetail(${prevIdx})" ${prevIdx === null ? 'disabled' : ''}><span class="nav-label">← Previous</span><span class="nav-name">${prevIdx !== null ? RECIPES[prevIdx].name : '—'}</span></button>
+      <button class="btn-nav" onclick="openDetail(${nextIdx})" ${nextIdx === null ? 'disabled' : ''}><span class="nav-label">Next →</span><span class="nav-name">${nextIdx !== null ? RECIPES[nextIdx].name : '—'}</span></button>
+    </div>`;
+
+  document.getElementById('detail-scroll').scrollTop = 0;
+  document.getElementById('detail-view').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-view').classList.remove('open');
+  currentDetail = null;
+  resetIdleTimer();
+}
+
+function openToday() { openDetail(getTodayIndex()); }
+
+// ── PREP PLANNER ──
+function buildSelectorGrid() {
+  const grid = document.getElementById('selector-grid');
+  grid.innerHTML = '';
+  selCounts = new Array(10).fill(0);
+  RECIPES.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'sel-card';
+    card.id = `sel-${i}`;
+    card.innerHTML = `
+      <div class="sel-emoji">${r.emoji}</div>
+      <div class="sel-info">
+        <div class="sel-name">${r.name}</div>
+      </div>
+      <div class="sel-stepper">
+        <button class="sel-btn minus" id="sel-minus-${i}" onclick="stepSel(${i},-1)" disabled aria-label="Remove one">−</button>
+        <div class="sel-count-display" id="sel-count-${i}">0</div>
+        <button class="sel-btn plus" id="sel-plus-${i}" onclick="stepSel(${i},1)" aria-label="Add one">+</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+  updateSelCounter();
+}
+
+function totalSelected() {
+  return selCounts.reduce((a, b) => a + b, 0);
+}
+
+function stepSel(i, delta) {
+  if (delta < 0 && selCounts[i] <= 0) return;
+  selCounts[i] = Math.max(0, selCounts[i] + delta);
+  const card = document.getElementById(`sel-${i}`);
+  card.classList.toggle('selected', selCounts[i] > 0);
+  document.getElementById(`sel-count-${i}`).textContent = selCounts[i];
+  updateSelCounter();
+}
+
+function updateSelBtnStates() {
+  RECIPES.forEach((_, i) => {
+    const minusBtn = document.getElementById(`sel-minus-${i}`);
+    if (minusBtn) minusBtn.disabled = selCounts[i] === 0;
+    const plusBtn = document.getElementById(`sel-plus-${i}`);
+    if (plusBtn) plusBtn.disabled = false;
+  });
+}
+
+function updateSelCounter() {
+  const total = totalSelected();
+  document.getElementById('sel-count').textContent = total;
+  document.getElementById('btn-generate').disabled = total < 1;
+  updateSelBtnStates();
+}
+
+function openPrep() {
+  resetIdleTimer();
+  buildSelectorGrid();
+  showLeftoverBanner();
+  showPrepStep(1);
+  document.getElementById('prep-view').classList.add('open');
+}
+
+function showLeftoverBanner() {
+  const banner = document.getElementById('leftover-banner');
+  const leftovers = RECIPES.map((r, i) => ({ name: r.name, emoji: r.emoji, qty: stock[i] || 0 })).filter(l => l.qty > 0);
+  const total = leftovers.reduce((a, l) => a + l.qty, 0);
+  if (leftovers.length === 0) { banner.style.display = 'none'; return; }
+  banner.style.display = 'block';
+  const needed = Math.max(0, 7 - total);
+  banner.innerHTML = `
+    <div class="leftover-banner">
+      <div class="leftover-banner-title">Already in your freezer</div>
+      <div class="leftover-rows">
+        ${leftovers.map(l => `<div class="leftover-row"><span>${l.emoji} ${l.name}</span><span>${l.qty} bag${l.qty !== 1 ? 's' : ''}</span></div>`).join('')}
+      </div>
+      <div class="leftover-total"><span>${total} bag${total !== 1 ? 's' : ''} ready</span><span>${needed > 0 ? `Prep ${needed} more for a full week` : 'Full week covered ✓'}</span></div>
+    </div>`;
+}
+
+function closePrep() {
+  document.getElementById('prep-view').classList.remove('open');
+  resetIdleTimer();
+}
+
+function showPrepStep(n) {
+  document.getElementById('prep-step1').style.display = n === 1 ? 'block' : 'none';
+  const results = document.getElementById('prep-step2');
+  results.style.display = n === 2 ? 'block' : 'none';
+  results.classList.toggle('visible', n === 2);
+
+  [1, 2].forEach(s => {
+    const num = document.getElementById(`step-num-${s}`);
+    const lbl = document.getElementById(`step-lbl-${s}`);
+    num.classList.toggle('active', s === n);
+    num.classList.toggle('done', s < n);
+    lbl.classList.toggle('active', s === n);
+  });
+}
+
+function resetPrep() {
+  buildSelectorGrid();
+  showPrepStep(1);
+}
+
+// ── CANONICAL ingredient key for aggregation ──
+function ingKey(name) {
+  return name.toLowerCase().replace(/\s+/g, ' ').replace(/\(.*?\)/g, '').trim();
+}
+
+// Parse amount string to numeric grams/ml
+function parseAmt(amtStr) {
+  const m = amtStr.match(/[\d.]+/);
+  return m ? parseFloat(m[0]) : 0;
+}
+
+function amtUnit(amtStr) {
+  return amtStr.replace(/[\d.]+\s*/, '').trim();
+}
+
+function generatePlan() {
+  // Expand selection into ordered list of 7 recipe indices
+  const plan = [];
+  selCounts.forEach((count, i) => {
+    for (let c = 0; c < count; c++) plan.push(i);
+  });
+  // Shuffle so duplicates aren't always consecutive
+  for (let i = plan.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [plan[i], plan[j]] = [plan[j], plan[i]];
+  }
+
+  // ── Add new bags to stock ──
+  selCounts.forEach((count, i) => {
+    stock[i] = (stock[i] || 0) + count;
+  });
+  saveStock(stock);
+  buildGrid();
+
+  showPrepStep(2);
+
+  const total = plan.length;
+  const subtitle = total === 7 ? 'Mon → Sun' : `${total} bag${total !== 1 ? 's' : ''} this week`;
+  document.getElementById('week-strip-subtitle').textContent = subtitle;
+
+  // week strip — use day labels only up to the total selected
+  const strip = document.getElementById('week-strip');
+  strip.style.gridTemplateColumns = `repeat(${Math.min(total, 7)}, 1fr)`;
+  strip.innerHTML = plan.map((rIdx, d) => {
+    const r = RECIPES[rIdx];
+    return `<div class="day-chip">
+      <div class="day-label">${DAYS[d] || `Day ${d+1}`}</div>
+      <span class="day-emoji">${r.emoji}</span>
+      <div class="day-name">${r.name}</div>
+    </div>`;
+  }).join('');
+
+  // ── Prep notes ──
+  const notes = [];
+  const hasCarrot = plan.some(i => RECIPES[i].bag.some(b => b.name.toLowerCase().includes('carrot')));
+  const hasApple = plan.some(i => RECIPES[i].bag.some(b => b.name.toLowerCase().includes('apple')));
+  const hasBanana = plan.some(i => RECIPES[i].bag.some(b => b.name.toLowerCase().includes('banana')));
+  const hasFlax = plan.some(i => RECIPES[i].bag.some(b => b.name.toLowerCase().includes('flaxseed')));
+  if (hasBanana) notes.push("Peel and slice bananas before freezing — they freeze in clumps if left whole.");
+  if (hasApple) notes.push("Peel, core and chop apples. Toss in a little lemon juice to prevent browning before freezing.");
+  if (hasCarrot) notes.push("Grate the carrot and freeze directly in the bag — no cooking needed.");
+  if (hasFlax) notes.push("Use only ground flaxseed (not whole) for absorption. Store the bag in the freezer.");
+  notes.push("Label each bag with the recipe name and day of the week.");
+  notes.push("Fresh ingredients (yogurt, nut butters, tofu, milks) are added on the morning — not prepped into bags.");
+
+  document.getElementById('prep-notes-list').innerHTML = notes.map(n => `<div class="prep-note-item">${n}</div>`).join('');
+
+  // ── Bags ──
+  const bagsGrid = document.getElementById('bags-grid');
+  bagsGrid.innerHTML = plan.map((rIdx, d) => {
+    const r = RECIPES[rIdx];
+    const items = r.bag.map(ing => `
+      <div class="bag-item">
+        <span class="bag-item-name${ing.isNew ? ' is-new' : ''}">${ing.name}</span>
+        <span class="bag-item-amt${ing.isNew ? ' is-new' : ''}">${ing.amount}</span>
+      </div>`).join('');
+    return `<div class="bag-card">
+      <div class="bag-card-header">
+        <div class="bag-emoji">${r.emoji}</div>
+        <div>
+          <div class="bag-day-label">${DAYS[d]}</div>
+          <div class="bag-recipe-name">${r.name}</div>
+        </div>
+      </div>
+      <div class="bag-items">${items}</div>
+    </div>`;
+  }).join('');
+
+  // ── Aggregate bag ingredients for shopping list & totals ──
+  // Map: canonical key → { displayName, totalAmt, unit, isNew }
+  const agg = {};
+  plan.forEach(rIdx => {
+    RECIPES[rIdx].bag.forEach(ing => {
+      const key = ingKey(ing.name);
+      const val = parseAmt(ing.amount);
+      const unit = amtUnit(ing.amount);
+      if (!agg[key]) {
+        agg[key] = { displayName: ing.name, total: 0, unit, isNew: !!ing.isNew };
+      }
+      agg[key].total += val;
+    });
+  });
+
+  // Sort: frozen items first, then seeds/dry goods, then ice
+  const frozen = [], seeds = [], other = [];
+  Object.values(agg).forEach(item => {
+    const n = item.displayName.toLowerCase();
+    if (n.includes('ice')) other.push(item);
+    else if (n.includes('frozen') || n.includes('peach') || n.includes('strawberr') || n.includes('blueberr') || n.includes('mango') || n.includes('banana') || n.includes('berries') || n.includes('apple') || n.includes('kale') || n.includes('spinach') || n.includes('pineapple') || n.includes('carrot')) frozen.push(item);
+    else seeds.push(item);
+  });
+
+  // ── Shopping list (bag ingredients only) ──
+  function shopSection(title, items) {
+    if (!items.length) return '';
+    const rows = items.map(item => {
+      const total = Number.isInteger(item.total) ? item.total : Math.round(item.total);
+      return `<div class="shop-item" onclick="this.classList.toggle('checked')">
+        <span class="shop-name"><span class="shop-check">✓</span>${item.displayName}</span>
+        <span class="shop-amt">${total}${item.unit}</span>
+      </div>`;
+    }).join('');
+    return `<div class="shop-section"><div class="shop-section-header">${title}</div>${rows}</div>`;
+  }
+
+  document.getElementById('shop-grid').innerHTML =
+    shopSection('Frozen', frozen) +
+    shopSection('Dry goods & seeds', seeds) +
+    shopSection('Other', other);
+
+  // scroll to top of results
+  document.querySelector('#prep-view .view-scroll').scrollTop = 0;
+}
+
+// ── SLEEP SCHEDULE ──
+const SLEEP_HOUR   = 22;   // 10pm
+const SLEEP_MIN    = 0;
+const WAKE_HOUR    = 6;    // 6:30am
+const WAKE_MIN     = 30;
+
+let nightActive = false;
+let sleepCheckInterval = null;
+// When user taps to wake during scheduled sleep, we snooze the schedule
+// until next natural wake time — tracked by this flag
+let manualWakeUntil = null;
+
+function isNightTime() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const mins = h * 60 + m;
+  const sleepMins = SLEEP_HOUR * 60 + SLEEP_MIN;
+  const wakeMins  = WAKE_HOUR  * 60 + WAKE_MIN;
+  // Sleep window spans midnight: sleep if mins >= sleepMins OR mins < wakeMins
+  return mins >= sleepMins || mins < wakeMins;
+}
+
+function enterNight() {
+  if (nightActive) return;
+  nightActive = true;
+  // Pause everything behind it
+  stopFrameSlideshow();
+  clearTimeout(idleTimer);
+  document.getElementById('frame-mode').classList.add('hidden');
+  document.getElementById('night-mode').classList.add('active');
+}
+
+function exitNight() {
+  if (!nightActive) return;
+  nightActive = false;
+  document.getElementById('night-mode').classList.remove('active');
+  // Return to frame mode (not app — we don't want full brightness recipe grid at 2am)
+  enterFrame();
+  // Mark manual wake so schedule doesn't immediately re-sleep
+  manualWakeUntil = new Date();
+  manualWakeUntil.setHours(WAKE_HOUR, WAKE_MIN, 0, 0);
+  if (manualWakeUntil <= new Date()) {
+    // already past today's wake time, set to tomorrow
+    manualWakeUntil.setDate(manualWakeUntil.getDate() + 1);
+  }
+}
+
+function checkSleepSchedule() {
+  // Don't sleep if user manually woke and wake time hasn't passed yet
+  if (manualWakeUntil && new Date() < manualWakeUntil) {
+    if (nightActive) exitNight();
+    return;
+  }
+  manualWakeUntil = null;
+
+  if (isNightTime()) {
+    if (!nightActive) enterNight();
+  } else {
+    if (nightActive) exitNight();
+  }
+}
+
+document.getElementById('night-mode').addEventListener('click', () => {
+  exitNight();
+  resetIdleTimer();
+});
+
+// ── FRAME MODE ──
+function enterFrame() {
+  if (nightActive) return; // don't enter frame during night
+  document.getElementById('frame-mode').classList.remove('hidden');
+  startFrameSlideshow();
+}
+
+function exitFrame() {
+  document.getElementById('frame-mode').classList.add('hidden');
+  stopFrameSlideshow();
+  resetIdleTimer();
+}
+
+function startFrameSlideshow() {
+  stopFrameSlideshow();
+  showFramePhoto(framePhotoIndex);
+  frameInterval = setInterval(() => {
+    framePhotoIndex = (framePhotoIndex + 1) % FRAME_PHOTOS.length;
+    showFramePhoto(framePhotoIndex);
+  }, 15000);
+}
+
+function stopFrameSlideshow() { clearInterval(frameInterval); }
+
+function showFramePhoto(idx) {
+  const img = document.getElementById('frame-img');
+  img.style.opacity = 0;
+  setTimeout(() => { img.src = FRAME_PHOTOS[idx]; img.onload = () => { img.style.opacity = 1; }; }, 300);
+}
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('frame-time').textContent = timeStr;
+  document.getElementById('frame-date').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  document.getElementById('app-clock').textContent = timeStr;
+}
+
+// ── IDLE ──
+function resetIdleTimer() {
+  if (nightActive) return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(enterFrame, IDLE_MS);
+}
+
+// ── INIT ──
+buildGrid();
+updateClock();
+// Check sleep schedule every minute
+checkSleepSchedule();
+sleepCheckInterval = setInterval(() => {
+  updateClock();
+  checkSleepSchedule();
+}, 60000);
+// Also update clock display every 10s for smooth time display
+setInterval(updateClock, 10000);
+
+if (!isNightTime()) {
+  resetIdleTimer();
+}
+
+document.getElementById('app').addEventListener('touchstart', resetIdleTimer, { passive: true });
+document.getElementById('app').addEventListener('mousedown', resetIdleTimer);
+document.getElementById('frame-mode').classList.add('hidden');
+</script>
+</body>
+</html>
